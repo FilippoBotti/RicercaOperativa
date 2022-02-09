@@ -9,18 +9,14 @@ set CATTEDRE within MATERIE cross PROFESSORI;
 set ORE_LIBERE within PROFESSORI cross LEZIONI;
 
 param ore_per_materia{MATERIE} > 0, integer;
-param M := 99;
 
 
 
 var x{c in CLASSI, (m,p) in CATTEDRE, (g,h) in LEZIONI} binary;
-var gl{p in PROFESSORI, g in GIORNI} binary;
+
 
 ###VINCOLI###
 
-subject to giorni_lavorativi{p in PROFESSORI, g in GIORNI}:
-	 if sum{m in MATERIE,c in CLASSI, h in ORE :(m,p) in CATTEDRE && (g,h) in LEZIONI}
-	 x[c,m,p,g,h] >=1 then gl[p,g]=1;
 	
 #5 ORE AL GIORNO	
 subject to ore_giornaliere{c in CLASSI, g in GIORNI} : 
