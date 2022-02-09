@@ -1,0 +1,14 @@
+reset;
+model /Users/filippobotti/Desktop/Personale/RicercaOperativa/assegnamento.mod;
+data /Users/filippobotti/Desktop/Personale/RicercaOperativa/assegnamento.dat;
+solve;
+
+for{p in PROFESSORI, g in GIORNI}{
+display p,g,gl[p,g];
+}
+
+for{(m,p) in CATTEDRE, (g,h) in LEZIONI, c in CLASSI}{
+	if(p= "COPELLI" && x[c,m,p,g,h]=1)then{
+		display m,g,h,c;
+		}
+	}
