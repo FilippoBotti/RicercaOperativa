@@ -67,10 +67,16 @@ maximize ore_buche{p in PROFESSORI, g in GIORNI, h in ORE: (g,h+2) in LEZIONI}:
 	sum{c in CLASSI, m in MATERIE: (m,p) in CATTEDRE } 
 	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
 	
+	
+#PROFESSORE NON AVRA LEZIONI NON CONSECUTIVE IN OGNI CLASSE
 subject to or_massime_professori{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
 		h in ORE: h+1 in ORE &&  (m,p) in CATTEDRE} :
 		sum{j in h+1..5, mat in MATERIE : (mat,p) in CATTEDRE} x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
 	
+subject to singolo_prof_per_materia{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
+		h in ORE: (m,p) in CATTEDRE}:
+		sum{gi in GIORNI, pr in PROFESSORI, 
+		hi in ORE: pr!=p && (m,pr) in CATTEDRE} x[c,m,pr,gi,hi] <= (1-x[c,m,p,g,h])*M;
 
 subject to giorni_lavorativi{p in PROFESSORI}:
 	sum{g in GIORNI} gl[p,g] <=5;

@@ -5,9 +5,7 @@ solve;
 
 
 for{(g,h) in LEZIONI, (m,p) in CATTEDRE,  c in CLASSI}{
-	if(x[c,m,p,g,h]=1 && g="SAB" && c="A")then{
+	if(x[c,m,p,g,h]=1 && m="ITA" && c="A")then{
 		display c,m,p,g,h;
 		}
 	}
-	
-display lezioni_in_giorni_liberi["FAROLINI"];
