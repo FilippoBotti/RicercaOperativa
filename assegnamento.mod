@@ -68,8 +68,8 @@ maximize ore_buche{p in PROFESSORI, g in GIORNI, h in ORE: (g,h+2) in LEZIONI}:
 	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
 	
 subject to or_massime_professori{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
-		h in ORE: h+1 in ORE && (m,p) in CATTEDRE} :
-		sum{j in h+1..5 } x[c,m,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
+		h in ORE: h+1 in ORE &&  (m,p) in CATTEDRE} :
+		sum{j in h+1..5, mat in MATERIE : (mat,p) in CATTEDRE} x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
 	
 
 subject to giorni_lavorativi{p in PROFESSORI}:
@@ -81,6 +81,33 @@ minimize obj_giorni_lavorativi{p in PROFESSORI}:
 minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
 	sum{g in GIORNI:
 		(p,g) in GIORNI_LIBERI} gl[p,g];
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 	
 	
 	
