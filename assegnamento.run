@@ -3,15 +3,10 @@ model /Users/filippobotti/Desktop/Personale/RicercaOperativa/assegnamento.mod;
 data /Users/filippobotti/Desktop/Personale/RicercaOperativa/assegnamento.dat;
 solve;
 
-for{p in PROFESSORI, g in GIORNI, h in ORE:  (g,h+2) in LEZIONI}{
-if(p="COPELLI" && g="MAR") then {
-display h, sum{c in CLASSI, m in MATERIE: (m,p) in CATTEDRE } 
-	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
-}}
 
 for{(g,h) in LEZIONI, (m,p) in CATTEDRE,  c in CLASSI}{
-	if(x[c,m,p,g,h]=1)then{
-		display c,m,p,g,h,c;
+	if(x[c,m,p,g,h]=1 && g="SAB" && c="B")then{
+		display c,m,p,g,h;
 		}
 	}
 	

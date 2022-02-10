@@ -9,7 +9,7 @@ set CATTEDRE within MATERIE cross PROFESSORI;
 set ORE_LIBERE within PROFESSORI cross LEZIONI;
 
 param ore_per_materia{MATERIE} >= 0, integer;
-
+param M := 100;
 
 
 var x{c in CLASSI, (m,p) in CATTEDRE, (g,h) in LEZIONI} binary;
@@ -37,7 +37,7 @@ subject to ore_in_contemporanea_prof{p in PROFESSORI, (g,h) in LEZIONI} :
 
 #3 ORE (DI FILA) MASSIME PER I PROF IN UNA CLASSE	
 subject to ore_massime_professori{c in CLASSI, g in GIORNI, p in PROFESSORI} :
-	sum{h in ORE, m in MATERIE : (m,p) in CATTEDRE} x[c,m,p,g,h] <= 2;
+	sum{h in ORE, m in MATERIE : (m,p) in CATTEDRE} x[c,m,p,g,h] <= 3;
 	
 #2 ORE MASSIME (DI FILA) DELLA STESSA MATERIA
 subject to ore_massime_materia{c in CLASSI, g in GIORNI, m in MATERIE} :
@@ -67,15 +67,15 @@ maximize ore_buche{p in PROFESSORI, g in GIORNI, h in ORE: (g,h+2) in LEZIONI}:
 	sum{c in CLASSI, m in MATERIE: (m,p) in CATTEDRE } 
 	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
 	
-# maximize ore_buche2{p in PROFESSORI, g in GIORNI , c in CLASSI}:
-#	sum{ (g,h) in LEZIONI, m in MATERIE  :
-#		 (m,p) in CATTEDRE 
-#		&& (g,h+1) in LEZIONI} 
-#	(x[c,m,p,g,h]+x[c,m,p,g,h+1]);
-
+subject to or_massime_professori{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
+		h in ORE: h+1 in ORE && (m,p) in CATTEDRE} :
+		sum{j in h+1..5 } x[c,m,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
 	
 
-minimize giorni_lavorativi{p in PROFESSORI}:
+subject to giorni_lavorativi{p in PROFESSORI}:
+	sum{g in GIORNI} gl[p,g] <=5;
+	
+minimize obj_giorni_lavorativi{p in PROFESSORI}:
 	sum{g in GIORNI} gl[p,g];
 	
 minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
