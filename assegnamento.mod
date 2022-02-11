@@ -47,16 +47,7 @@ subject to ore_massime_materia{c in CLASSI, g in GIORNI, m in MATERIE} :
 subject to ore_materia{c in CLASSI, m in MATERIE} :
 	sum{(g,h) in LEZIONI, p in PROFESSORI : (m,p) in CATTEDRE }
 	 x[c,m,p,g,h] = ore_per_materia[m];
-	
-#GIORNI LIBERI DEI PROF
-#eliminare insieme giorni_liberi e fare sommatoria <=5
-#aggiungere obiettivo giorno libero = richiesta
-#idem per ore
-#subject to giorni_liberi{p in PROFESSORI} :
-#	sum{c in CLASSI, (g,h) in LEZIONI, m in MATERIE :
-#		(m,p) in CATTEDRE &&
-#		(p,g) in GIORNI_LIBERI} x[c,m,p,g,h] = 0;
-	
+		
 #ORE LIBERE DEI PROF	
 subject to ore_libere{p in PROFESSORI} :
 	sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :
@@ -67,9 +58,8 @@ maximize ore_buche{p in PROFESSORI, g in GIORNI, h in ORE: (g,h+2) in LEZIONI}:
 	sum{c in CLASSI, m in MATERIE: (m,p) in CATTEDRE } 
 	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
 	
-	
-#PROFESSORE NON AVRA LEZIONI NON CONSECUTIVE IN OGNI CLASSE
-subject to or_massime_professori{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
+#PROFESSORE NON AVRA' LEZIONI NON CONSECUTIVE IN OGNI CLASSE
+subject to ore_non_consecutive{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
 		h in ORE: h+1 in ORE &&  (m,p) in CATTEDRE} :
 		sum{j in h+1..5, mat in MATERIE : (mat,p) in CATTEDRE} x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
 	
