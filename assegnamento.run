@@ -5,7 +5,7 @@ solve;
 
 
 for{(g,h) in LEZIONI, (m,p) in CATTEDRE,  c in CLASSI}{
-	if(x[c,m,p,g,h]=1 && p="NERI")then{
+	if(x[c,m,p,g,h]=1 && p="BOTTI")then{
 		display c,m,p,g,h;
 		}
 	}

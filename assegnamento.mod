@@ -15,10 +15,13 @@ param M := 100;
 var x{c in CLASSI, (m,p) in CATTEDRE, (g,h) in LEZIONI} binary;
 var gl{p in PROFESSORI, g in GIORNI} binary;
 
+	
 ###VINCOLI###
+#0 se non lavora
 subject to giorno_lav{(p,g) in PROFESSORI cross GIORNI}:
 	gl[p,g] <= sum{m in MATERIE, h in ORE, c in CLASSI : (m,p) in CATTEDRE} x[c,m,p,g,h];
 
+#1 se lavora
 subject to giorno_lav2{(m,p) in CATTEDRE, (g,h) in LEZIONI, c in CLASSI}:
 	gl[p,g] >= x[c,m,p,g,h];
 	
@@ -54,9 +57,9 @@ subject to ore_libere{p in PROFESSORI} :
 		(m,p) in CATTEDRE &&
 		(p,g,h) in ORE_LIBERE} x[c,m,p,g,h] = 0;	
 	
-maximize ore_buche{p in PROFESSORI, g in GIORNI, h in ORE: (g,h+2) in LEZIONI}:
-	sum{c in CLASSI, m in MATERIE: (m,p) in CATTEDRE } 
-	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
+#maximize ore_buche{p in PROFESSORI, g in GIORNI, h in ORE: (g,h+2) in LEZIONI}:
+#	sum{c in CLASSI, m in MATERIE: (m,p) in CATTEDRE } 
+#	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
 	
 #PROFESSORE NON AVRA' LEZIONI NON CONSECUTIVE IN OGNI CLASSE
 subject to ore_non_consecutive{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
@@ -78,6 +81,12 @@ minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
 	sum{g in GIORNI:
 		(p,g) in GIORNI_LIBERI} gl[p,g];
 		
+maximize ore_di_fila{p in PROFESSORI, g in GIORNI}:
+	sum{c in CLASSI,h in ORE, m in MATERIE: (g,h) in LEZIONI && (m,p) in CATTEDRE && h+2 in ORE}
+	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]*x[c,m,p,g,h] - (1-x[c,m,p,g,h])*M);
+	
+	#1 1 0*1 0*M
+	#0 1 1*0 -M
 		
 		
 		
