@@ -81,12 +81,9 @@ minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
 	sum{g in GIORNI:
 		(p,g) in GIORNI_LIBERI} gl[p,g];
 		
-maximize ore_di_fila{p in PROFESSORI, g in GIORNI}:
-	sum{c in CLASSI,h in ORE, m in MATERIE: (g,h) in LEZIONI && (m,p) in CATTEDRE && h+2 in ORE}
-	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]*x[c,m,p,g,h] - (1-x[c,m,p,g,h])*M);
-	
-	#1 1 0*1 0*M
-	#0 1 1*0 -M
+minimize ore_di_fila{p in PROFESSORI, g in GIORNI, c in CLASSI, m in MATERIE, h in ORE, j in ORE:
+                     (m,p) in CATTEDRE && (g,h) in LEZIONI && j>h && (g,j) in LEZIONI}:
+                          (j-h)*x[c,m,p,g,h]*x[c,m,p,g,j];
 		
 		
 		
