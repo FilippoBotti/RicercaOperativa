@@ -138,10 +138,15 @@ class Problem:
 
         # se prof ha lezione in due ore non consecutive (in qualsiasi classe) allora voglio minimizzare la distanza
         # tra queste due ore. Caso migliore: le ore diventano consecutive
-        self.ampl.eval('minimize ore_di_fila{p in PROFESSORI, g in GIORNI, c in CLASSI, m in MATERIE, h in ORE, j in ORE:\
-                     (m,p) in CATTEDRE && (g,h) in LEZIONI && j>h && (g,j) in LEZIONI}:\
-                          (j-h)*x[c,m,p,g,h]*x[c,m,p,g,j];\
-            ')
+        # self.ampl.eval('subject to ore_di_fila{p in PROFESSORI, g in GIORNI, c in CLASSI, m in MATERIE, h in ORE, j in ORE:\
+        #              (m,p) in CATTEDRE && (g,h) in LEZIONI && j>h && (g,j) in LEZIONI}:\
+        #                   (j-h)*x[c,m,p,g,h]*x[c,m,p,g,j]<=1;\
+        #     ')
+
+        self.ampl.eval('subject to ore{g in GIORNI, p in PROFESSORI,h in ORE: (g,h) in LEZIONI && h+1 in ORE}:\
+                        sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI && j>h && (m,p) in CATTEDRE}\
+                            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M) <= 0;')
+
 
     def solve_problem(self):
         self.ampl.solve()

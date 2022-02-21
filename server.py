@@ -11,36 +11,21 @@ app = Flask(__name__)
 @app.route('/sign-up',methods=('GET', 'POST'))
 def solve():
     if request.method == 'POST':
-        professori = ['FAROLINI', 'COPELLI', 'RAVANETTI', 'PEDRETTI', 
-                     'BALL', 'QUARTAROLI']
+        professori = ['FAROLINI', 'COPELLI', 'RAVANETTI', 'PEDRETTI', 'PISTORIO', 'GERARDI', 
+                    'MALANDRI', 'BALL', 'QUARTAROLI', 'BOTTI', 'NERI', 'VERDI' ,'GIALLI']
         classi = ['A','B']
 
         ore = [1,2,3,4,5]
 
-        materie = ['ITA', 'MATE', 'TECNICA', 'GINNASTICA', 'SCIENZE', 'INGLESE', 
-                        'STORIAGEO', 'MUSICA']
+        materie = ['ITA', 'MATE', 'TECNICA', 'GINNASTICA', 'ARTE', 'FRANCESE', 'SCIENZE', 'INGLESE', 
+                        'STORIAGEO', 'RELIGIONE', 'MUSICA']
 
 
-        giorni = ['LUN', 'MAR', 'MER', 'GIO']
+        giorni = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB']
 
-        giorni_liberi = [('FAROLINI', 'MAR'),
-                        ('PEDRETTI', 'MER'),
-                        ('QUARTAROLI', 'LUN'),
-                        ('BALL', 'GIO'),
-                        ('COPELLI', 'MAR'),
-                        ('RAVANETTI','MER')
-                        ]
+        giorni_liberi = [('FAROLINI', 'GIO')]
 
-        ore_libere = [('FAROLINI', 'GIO', 1),
-                        # ('PEDRETTI', 'LUN',2),
-                        # ('QUARTAROLI','LUN',2),
-                        # ('BALL','LUN',2),
-                        # ('COPELLI','MER',1),
-                        # ('RAVANETTI','GIO',5)
-        ]
-
-
-
+        ore_libere = [('FAROLINI', 'GIO', 1)]
         lezioni = [('LUN', 1),
             ('LUN', 2),
             ('LUN', 3),
@@ -61,26 +46,45 @@ def solve():
             ('GIO', 3),
             ('GIO', 4),
             ('GIO', 5),
-    ]
+            ('VEN', 1),
+            ('VEN', 2),
+            ('VEN', 3),
+            ('VEN', 4),
+            ('VEN', 5),
+            ('SAB', 1),
+            ('SAB', 2),
+            ('SAB', 3),
+            ('SAB', 4),
+            ('SAB', 5),]
 
         cattedre = [('ITA', 'FAROLINI'),
+            ('SCIENZE', 'NERI'),
+            ('ARTE', 'VERDI'),
+            ('MUSICA', 'GIALLI'),
+            ('ITA', 'BOTTI'),
             ('MATE', 'COPELLI'),
             ('TECNICA', 'RAVANETTI'),
             ('GINNASTICA', 'PEDRETTI'),
             ('SCIENZE', 'COPELLI'),
             ('INGLESE', 'BALL'),
+            ('FRANCESE', 'GERARDI'),
+            ('ARTE', 'PISTORIO'),
+            ('RELIGIONE', 'MALANDRI'),
             ('STORIAGEO', 'FAROLINI'),
             ('MUSICA', 'QUARTAROLI'),]
 
 
         ore_per_materia = {
-                'ITA':4,
-                'MATE':3,
+                'ITA':6,
+                'MATE':4,
                 'INGLESE':3,
+                'ARTE':2,
                 'MUSICA':2,
                 'GINNASTICA':2,
                 'TECNICA':2,
-                'STORIAGEO':2,
+                'STORIAGEO': 4,
+                'FRANCESE':2,
+                'RELIGIONE':1,
                 'SCIENZE':2
             }
 
@@ -98,7 +102,9 @@ def solve():
                     lezioni.append((key[0],key[1],key[2],key[3],key[4]))
                     
         lezioni.sort(key=lambda tup: tup[4]) 
-        
+        for lezione in lezioni:
+            if lezione[2] =="BOTTI":
+                print(lezione)
         if request.form['title'] not in problem.professori:
             return render_template('base.html', giorni=problem.giorni, lezioni=lezioni,  classi = problem.classi)
         return render_template('professore.html', giorni=problem.giorni, lezioni=lezioni, professore = request.form['title'])
