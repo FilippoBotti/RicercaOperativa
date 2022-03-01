@@ -1,0 +1,159 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[italian]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+  \usepackage{minted}
+ \usepackage[dvipsnames]{xcolor}
+\definecolor{lightGray}{RGB}{236,236,236}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{Orario Scolastico}
+\author{Filippo Botti e Lorenzo Riccardi}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Your abstract.
+\end{abstract}
+
+\section{Assegnamento}
+In una scuola si deve pianificare l’orario settimanale. Ogni materia richiede un
+certo numero di ore. Inoltre il docente di una materia presenta una richiesta di
+un giorno libero, l’indisponibilità in certe ore e inoltre vorrebbe avere un basso
+numero di buchi nel proprio orario. E però prevedibile che alcune di queste
+richieste non possano essere soddisfatte. Si vuole pianificare l’orario in modo da
+soddisfare il maggior numero possibile delle richieste dei docenti.
+Si formuli il modello matematico per questo problema, lo si scriva in AMPL
+e si definiscano i dati di una particolare istanza, risolvendola. Si faccia inoltre
+un’analisi di cosa succede se si modificano alcuni dei dati dell’istanza. Pur
+costruendo un modello generale, per semplicità nelle istanze testate si consideri
+un numero limitato di materie e di ore giornaliere
+
+
+\section{Modello AMPL}
+In questa sezione andremo a trattare la conversione in linguaggio AMPL del modello matematico appena formulato, dapprima da un punto di vista strutturale, quindi definendo solo il problema e, successivamente, da un punto di vista implementativo, definiendo dunque alcune istanze del problema e commentando i loro risultati.
+\subsection{Insiemi}
+In questa sezione andremo a definire gli insiemi necessari all'elaborazione del progetto. Ricordando che la definizione di un insieme si effettua attraverso la keyword \emph{SET} e che le keywords \emph{whitin} e \emph{cross} stanno rispettivamente per sottoinsieme e prodotto cartesiano. 
+\\Otteniamo dunque le seguenti definizioni:
+\begin{minted}[bgcolor=lightGray]{AMPL}
+set PROFESSORI;
+set CLASSI;
+set MATERIE;
+set ORE;
+set GIORNI;
+set GIORNI_LIBERI within PROFESSORI cross GIORNI;
+set LEZIONI within GIORNI cross ORE;
+set CATTEDRE within MATERIE cross PROFESSORI;
+set ORE_LIBERE within PROFESSORI cross LEZIONI;
+\end{minted}
+\\
+\subsection{Parametri}
+Passiamo ora alla definizione dei parametri, usando la keyword \emph{param} per dichiararli e la keyword \emph{integer} per stabilire la loro natura di numeri interi:
+\begin{minted}[bgcolor=lightGray]{AMPL}
+param ore_per_materia{MATERIE} >= 0, integer;
+param M := 100;
+param ore_al_giorno integer, default 5;
+\end{minted}
+Come vediamo in questa sezione compare un parametro, il parametro M che non viene utilizzato nel modello matematico. Questo parametro viene infatti utilizzato quando, nei vincoli o negli obiettivi, compare una condizione \emph{if-else}. Infatti, non avendo a disposizione un comando tale da poter espimere questa condizione logica, dovremo utilizzare la cosiddetta \emph{Big M Notation}, la quale verrà spiegata più avanti nell'apposita sezione.
+
+\subsection{Variabili}
+In questa sezione andremo a definire il cuore del problema. Come già ampiamente spiegato la risoluzione del problema si basa sull'utilizzo di due tipologie di variabili binarie, definite attraverso la keyword \emph{binary}:
+\begin{minted}[bgcolor=lightGray]{AMPL}
+var x{c in CLASSI, (m,p) in CATTEDRE, (g,h) in LEZIONI} binary;
+var gl{p in PROFESSORI, g in GIORNI} binary;
+\end{minted}
+
+\subsection{Vincoli}
+Definiti gli insiemi, i parametri e le variabili con cui lavorare non ci resta che definire i vincoli che il nostro problema DEVE rispettare. Essendo questa sezione la parte cruciale del problema sarebbe riduttivo elencarli come fatto per insiemi, parametri e variabili, è dunque ragionevole un breve commento per ognuno di essi.
+\\\\\textbf{Giorni lavorativi}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to giorno_lavorativo{(p,g) in PROFESSORI cross GIORNI}:
+	gl[p,g] <= sum{m in MATERIE, h in ORE, c in CLASSI : (m,p) in CATTEDRE}
+	x[c,m,p,g,h];
+
+subject to giorno_lavorativo2{(m,p) in CATTEDRE, (g,h) in LEZIONI, c in CLASSI}:
+	gl[p,g] >= x[c,m,p,g,h];
+\end{minted}
+Questi due vincoli vengono sfruttati per definire le variabili binarie relative ai giorni lavorativi: infatti dal primo vincolo \emph{giorno lavorativo} definiamo che ogni variabile gl[p,g] associata ad un professore e ad un giorno deve essere inferiore alla somma delle ore lavorative del professore nel giorno stabilito. Questo per fare in modo che, se nel giorno stabilito il professore non avesse alcuna lezione, allora la variabile gl[p,g] dovrà essere minore o uguale a zero, cioè zero e quindi rappresenta il fatto che il professore non lavori in quel determinato giorno.
+\\\\Analogamente il secondo vincolo \emph{giorno lavorativo2}, determina che la variabile gl[p,g] debba essere maggiore o uguale a ciascuna delle ore di lezione che ha nel rispettivo giorno, perciò ne basta una sola a determinare il fatto che gl[p,g] sia uguale ad uno, che quindi rappresenta il fatto che il professore lavori in quel determinato giorno.
+\\\\\textbf{Ore giornaliere}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_giornaliere{c in CLASSI, g in GIORNI} : 
+	sum{(m,p) in CATTEDRE, h in ORE: (g,h) in LEZIONI}
+	x[c,m,p,g,h] = ore_al_giorno;
+\end{minted}
+Questo vincolo rappresenta il numero delle ore giornaliere di lezione: per ogni classe e per ogni giorno, infatti, la somma di tutte le lezioni, di tutti i professori deve essere uguale a al parametro che definisce il numero di ore giornaliere, che se non specificato tra i dati vale cinque.
+\\\\\textbf{Ore in contemporanea per classe}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_in_contemporanea_classe{c in CLASSI, (g,h) in LEZIONI} :
+	sum{(m,p) in CATTEDRE} x[c,m,p,g,h] = 1;
+\end{minted}
+Questo vincolo rappresenta il fatto che una classe debba avere una ed una sola lezione per ogni ora, dunque la sommatoria, per ogni classe e per ogni ora di lezione del numero di lezioni deve essere pari ad uno.
+\\\\\textbf{Ore in contemporanea per professore}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_in_contemporanea_prof{p in PROFESSORI, (g,h) in LEZIONI} :
+	sum{c in CLASSI, m in MATERIE : 
+	 (m,p) in CATTEDRE} x[c,m,p,g,h] <= 1;
+\end{minted}
+Questo vincolo è sostanzialmente uguale come logica al vincolo precedente, ma riguarda i professori. L'unica differenza è che un professore non è detto che debba per forza avere una lezione per ogni ora, dunque non sarà più un vincolo di uguaglianza, ma sarà un vincolo di minore, nel caso in cui non abbia lezione, o uguale, nel caso in cui abbia lezione, ad uno.
+\\\\\textbf{Ore massime di un professore in una classe}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_massime_professori{c in CLASSI, g in GIORNI, p in PROFESSORI} :
+	sum{h in ORE, m in MATERIE : (m,p) in CATTEDRE}
+	x[c,m,p,g,h] <= 3;
+\end{minted}
+Questo vincolo indica il fatto che un professore non possa insegnare per più di tre ore nella stessa classe, nello stesso giorno. Infatti per ogni classe, giorno e professore, la somma delle lezioni deve essere minore o uguale a tre.
+\\\\\textbf{Ore massime di una materia in una classe}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_massime_materia{c in CLASSI, g in GIORNI, m in MATERIE} :
+	sum{h in ORE, p in PROFESSORI : (m,p) in CATTEDRE } x[c,m,p,g,h] <= 2;
+\end{minted}
+Analogamente al vincolo precedente, il numero di ore di una stessa materia, per ogni classe, nella stessa giornata non deve soprassare le due ore.
+\\\\\textbf{Ore di una materia a settimana}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_materia{c in CLASSI, m in MATERIE} :
+	sum{(g,h) in LEZIONI, p in PROFESSORI : (m,p) in CATTEDRE }
+	 x[c,m,p,g,h] = ore_per_materia[m];
+\end{minted}
+Questo vincolo indica il fatto che, per ogni materia il numero totale delle ore a settimana debba essere uguale al parametro definito per rispettare l'orario scolastico. Ovviamente il vincolo è esteso ad ogni classe, infatti, per ogni classe e per ogni materia, la somma totale delle ore relative alla materia stabilita deve essere uguale al numero delle ore a settimana per la relativa materia.
+\\\\\textbf{Ore libere dei professori}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_libere{p in PROFESSORI} :
+	sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :
+		(m,p) in CATTEDRE &&
+		(p,g,h) in ORE_LIBERE} x[c,m,p,g,h] = 0;
+\end{minted}
+Questo vincolo stabilisce che un professore non possa lavorare nei giorni per i quali ha fatto richiesta di non lavorare. Di conseguenza, per ogni professore, il numero delle ore di lezione nelle ore libere dovrà essere pari a zero.
+\\\\\textbf{Singolo prof per materia}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to singolo_prof_per_materia{c in CLASSI, g in GIORNI, m in MATERIE, 
+                p in PROFESSORI, h in ORE: (m,p) in CATTEDRE}:
+		sum{gi in GIORNI, pr in PROFESSORI, 
+		hi in ORE: pr!=p && (m,pr) in CATTEDRE}
+		x[c,m,pr,gi,hi] <= (1-x[c,m,p,g,h])*M;
+\end{minted}
+Questo vincolo stabilisce il fatto che per ogni classe, il numero di professori che insegnano la stessa materia debba essere uguale a uno, ovvero non posso avere due professori diversi per una stessa materia, nella stessa classe. Infatti, per ogni classe, giorno, materia, professore e ore, la somma delle ore dei professori che insegnano la stessa materia, ma che non sono il professore preso in considerazione inizialmente deve essere minore o uguale a zero, se il professore primario p insegna la materia in quella classe, mentre deve essere minore o uguale a M costante elevata in tutti gli altri casi. E' qui che vediamo dunque l'utilizzo della \emph{Big M Notation}: se il professore insegna la materia in quella determinata classe allora la somma di tutte le lezione degli altri professori che insegnano la stessa materia in quella classe dovrà essere minore o uguale a (1-1)*M ovvero zero; nel caso invece in cui il professore non insegnasse la materia nella classe la somma dovrà essere minore o uguale a (1-0)*M ovvero M, ed essendo M una costante appositamente scelta molto elevata sarà dunque ridondante perchè il numero di ore, qualsiasi esso sia, non supererà mai, per come è stata definita, M.
+\\\\\textbf{Ore non consecutive per classe}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to ore_non_consecutive{c in CLASSI, g in GIORNI,
+                m in MATERIE, p in PROFESSORI, 
+		h in ORE: h+1 in ORE &&  (m,p) in CATTEDRE} :
+		sum{j in h+1..5, mat in MATERIE : (mat,p) in CATTEDRE} 
+		x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
+\end{minted}
+Questo vincolo rappresenta il fatto che un professore non possa avere due ore in una classe che siano non consecutive, indipendentemente dalla materia che insegna. Analogamente a quanto descritto in precedenza si utilizza la \emph{Big M Notation} per scrivere il vincolo.
+
+
+
+
+
+\end{document}

@@ -10,7 +10,7 @@ set ORE_LIBERE within PROFESSORI cross LEZIONI;
 
 param ore_per_materia{MATERIE} >= 0, integer;
 param M := 100;
-
+param ore_al_giorno integer, default 5;
 
 var x{c in CLASSI, (m,p) in CATTEDRE, (g,h) in LEZIONI} binary;
 var gl{p in PROFESSORI, g in GIORNI} binary;
@@ -27,7 +27,7 @@ subject to giorno_lav2{(m,p) in CATTEDRE, (g,h) in LEZIONI, c in CLASSI}:
 	
 #5 ORE AL GIORNO	
 subject to ore_giornaliere{c in CLASSI, g in GIORNI} : 
-	sum{(m,p) in CATTEDRE, h in ORE: (g,h) in LEZIONI} x[c,m,p,g,h] =5;
+	sum{(m,p) in CATTEDRE, h in ORE: (g,h) in LEZIONI} x[c,m,p,g,h] = ore_al_giorno;
 
 #1 ORA IN CONTEMPORANEA PER CLASSE
 subject to ore_in_contemporanea_classe{c in CLASSI, (g,h) in LEZIONI} :
@@ -81,9 +81,9 @@ minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
 	sum{g in GIORNI:
 		(p,g) in GIORNI_LIBERI} gl[p,g];
 		
-minimize ore_di_fila{p in PROFESSORI, g in GIORNI, c in CLASSI, m in MATERIE, h in ORE, j in ORE:
-                     (m,p) in CATTEDRE && (g,h) in LEZIONI && j>h && (g,j) in LEZIONI}:
-                          (j-h)*x[c,m,p,g,h]*x[c,m,p,g,j];
+minimize ore_di_fila{g in GIORNI, p in PROFESSORI,h in ORE: (g,h) in LEZIONI && h+1 in ORE}:
+                        sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI && j>h && (m,p) in CATTEDRE}
+                            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M);
 		
 		
 		
