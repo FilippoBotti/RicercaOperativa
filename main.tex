@@ -38,7 +38,51 @@ un’analisi di cosa succede se si modificano alcuni dei dati dell’istanza. Pu
 costruendo un modello generale, per semplicità nelle istanze testate si consideri
 un numero limitato di materie e di ore giornaliere
 
+\section{Modello Matematico}
+In questa sezione andremo a descrivere il modello matematico pensato per risolvere il problema. 
+\subsection{Insiemi}
+Per prima cosa occorre definire gli insiemi che caratterizzano il problema:
+\begin{itemize}
+    \item Professori
+    \item Classi
+    \item Materie
+    \item Ore
+    \item Giorni
+    \item Giorni Liberi $\subset$ (Professori $\times$ Giorni)
+    \item Lezioni $\subset$ (Giorni $\times$ Ore)
+    \item Cattedre $\subset$ (Materie $\times$ Professori)
+    \item Ore Libere $\subset$ (Professori $\times$ Lezioni)
+\end{itemize}
 
+\subsection{Parametri}
+Successivamente occorre dichiarare alcuni parametri che ci serviranno per la definizione del problema:
+\begin{itemize}
+    \item $\forall$ \emph{m} in Materie: \emph{ore$\_$per$\_$materia}[\emph{m}] $\ge$ 0, interi
+    \item \emph{M}
+    \item \emph{ore$\_$al$\_$giorno}, intero
+\end{itemize}
+
+\subsection{Variabili}
+Dati gli insiemi e i parametri sopra descritti, il problema consiste nel trovare una rappresentazione possibile dell'orario scolastico e cercare di soddisfare le richieste dell'assegnamento. Per questo motivo definiamo le variabili:
+\begin{itemize}
+    \item \emph{x}[\emph{c,m,p,g,h}] binarie, le quali rappresentano le lezioni. Infatti avranno valore 1 nel caso in cui nella classe \emph{c} la materia \emph{m} è insegnata dal professore \emph{p} nel giorno \emph{g} all'ora \emph{h}, 0 negli altri casi.
+    \item \emph{gl}[\emph{p,g}] anch'esse binarie, che rappresentano i giorni lavorativi di ogni professore. Saranno dunque pari ad 1 se il professore \emph{p} ha almeno una lezione nel giorno \emph{g}, 0 negli altri casi.
+\end{itemize}
+
+\subsection{Vincoli}
+Possiamo ora modellare il problema andando a definire i vincoli che esso deve rispettare. Per ogni vincolo vedremo la definizione simbolica e una spiegazione che ne convalida l'esistenza.
+\\\\\textbf{Ore giornaliere}
+	\\\\\emph{$\forall$ c in Classi, $\forall$ g in Giorni}: 
+	\\$\sum_{m \in Mat}$ $\sum_{p : (m,p) \in Cat}$ $\sum_{h :(g,h)\in Lezioni}x[c,m,p,g,h] = ore$\_$al$\_$giorno$
+\\\\Per ogni classe e per ogni giorno la somma di tutte le ore di lezione deve essere pari al numero di ore giornaliere definito dall'orario.
+\\\\\textbf{Ore in contemporanea per classe}
+	\\\\\emph{$\forall$ c in Classi, $\forall$ g in Giorni, $\forall$ h in Ore $\mid$ (g,h)  $\in$ Lezioni}: 
+	\\$\sum_{m \in Mat}$ $\sum_{p : (m,p) \in Cat}x[c,m,p,g,h] = 1$
+\\\\Per ogni classe, per ogni giorno e per ogni ora la somma di tutte le ore di lezione deve essere pari ad 1, ovvero non posso avere due lezioni alla stessa ora dello stesso giorno in una classe.
+\\\\\textbf{Ore in contemporanea per professore}
+	\\\\\emph{$\forall$ p in Prof, $\forall$ g in Giorni, $\forall$ h in Ore $\mid$ (g,h)  $\in$ Lezioni}: 
+	\\$\sum_{c \in Classi}$ $\sum_{m : (m,p) \in Cat}x[c,m,p,g,h] <= 1$
+\\\\Per ogni professore, per ogni giorno e per ogni ora la somma di tutte le ore di lezione deve essere minore o uguale ad 1, ovvero non posso avere due lezioni alla stessa ora dello stesso giorno tenute dallo stesso professore.
 \section{Modello AMPL}
 In questa sezione andremo a trattare la conversione in linguaggio AMPL del modello matematico appena formulato, dapprima da un punto di vista strutturale, quindi definendo solo il problema e, successivamente, da un punto di vista implementativo, definiendo dunque alcune istanze del problema e commentando i loro risultati.
 \subsection{Insiemi}
@@ -55,7 +99,6 @@ set LEZIONI within GIORNI cross ORE;
 set CATTEDRE within MATERIE cross PROFESSORI;
 set ORE_LIBERE within PROFESSORI cross LEZIONI;
 \end{minted}
-\\
 \subsection{Parametri}
 Passiamo ora alla definizione dei parametri, usando la keyword \emph{param} per dichiararli e la keyword \emph{integer} per stabilire la loro natura di numeri interi:
 \begin{minted}[bgcolor=lightGray]{AMPL}
@@ -125,14 +168,6 @@ subject to ore_materia{c in CLASSI, m in MATERIE} :
 	 x[c,m,p,g,h] = ore_per_materia[m];
 \end{minted}
 Questo vincolo indica il fatto che, per ogni materia il numero totale delle ore a settimana debba essere uguale al parametro definito per rispettare l'orario scolastico. Ovviamente il vincolo è esteso ad ogni classe, infatti, per ogni classe e per ogni materia, la somma totale delle ore relative alla materia stabilita deve essere uguale al numero delle ore a settimana per la relativa materia.
-\\\\\textbf{Ore libere dei professori}
-\begin{minted}[bgcolor=lightGray]{AMPL}
-subject to ore_libere{p in PROFESSORI} :
-	sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :
-		(m,p) in CATTEDRE &&
-		(p,g,h) in ORE_LIBERE} x[c,m,p,g,h] = 0;
-\end{minted}
-Questo vincolo stabilisce che un professore non possa lavorare nei giorni per i quali ha fatto richiesta di non lavorare. Di conseguenza, per ogni professore, il numero delle ore di lezione nelle ore libere dovrà essere pari a zero.
 \\\\\textbf{Singolo prof per materia}
 \begin{minted}[bgcolor=lightGray]{AMPL}
 subject to singolo_prof_per_materia{c in CLASSI, g in GIORNI, m in MATERIE, 
@@ -150,10 +185,45 @@ subject to ore_non_consecutive{c in CLASSI, g in GIORNI,
 		sum{j in h+1..5, mat in MATERIE : (mat,p) in CATTEDRE} 
 		x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
 \end{minted}
-Questo vincolo rappresenta il fatto che un professore non possa avere due ore in una classe che siano non consecutive, indipendentemente dalla materia che insegna. Analogamente a quanto descritto in precedenza si utilizza la \emph{Big M Notation} per scrivere il vincolo.
+Questo vincolo rappresenta il fatto che un professore non possa avere due ore in una classe che siano non consecutive, indipendentemente dalla materia che insegna. Analogamente a quanto descritto in precedenza si utilizza la \emph{Big M Notation} per scrivere il vincolo: per ogni classe, giorno, materia e professore la somma delle ore successive a quella presa inizialmente in considerazione, del professore preso in considerazione deve essere minore o uguale a zero nel caso in cui nell'ora successiva a quella considerata il professore non abbia lezione nella classe selezionata; in caso contrario la somma deve essere inferiore ad M costante elevata e quindi vincolo ridondante.
+\\\\\textbf{Giorni lavorativi}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+subject to giorni_lavorativi{p in PROFESSORI}:
+	sum{g in GIORNI} gl[p,g] <=5;
+\end{minted}
+Questo vincolo impone il fatto che i professori lavorino al massimo cinque giorni sui sei disponibili.
 
-
-
-
+\subsection{Obiettivi}
+In quest'ultima parte andremo a definire gli obiettivi del problema, analizzando come fatto per i vincoli, obiettivo per obiettivo.
+\\\\\textbf{Giorni lavorativi}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+minimize obj_giorni_lavorativi{p in PROFESSORI}:
+	sum{g in GIORNI} gl[p,g];
+\end{minted}
+Questo obiettivo vuole andare a minimizzare i giorni lavorativi per ogni professore, la logica è la stessa sulla quale si basa il vincolo relativo ai giorni lavorativi massimi dei professori, ma in questo caso vogliamo minimizzare il più possibile questa somma.
+\\\\\textbf{Giorni lavorativi in giorni liberi}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
+	sum{g in GIORNI:
+		(p,g) in GIORNI_LIBERI} gl[p,g];
+\end{minted}
+Riprendendo la definizione del problema, vediamo come vi sia la possibilità per ogni professore di inserire giorni liberi. Il sistema deve quindi cercare di rispettare il più possibile la volontà dei professori, evitando di inserire lezioni dei professori in questi giorni. Per questo motivo, per ogni professore, la somma dei giorni lavorativi, considerando solo i giorni in cui è stata fatta richiesta di indisponibilità deve essere minima.
+\\\\\textbf{Ore buche}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+minimize ore_di_fila{g in GIORNI, p in PROFESSORI,h in ORE: 
+                    (g,h) in LEZIONI && h+1 in ORE}:
+                    sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI
+                    && j>h && (m,p) in CATTEDRE}
+                    (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M);
+\end{minted}
+Questo vincolo è forse il più utile e quello che più si avvicina all'idea di orario accettabile. Si sta cercando di eliminare il più possibile le ore buche tra una lezione e l'altra per ogni professore. Per ogni giorno, per ogni professore se l'ora successiva a quella presa in considerazione è buca, allora devo minimizzare la somma di tutte le ore successive; se invece l'ora successiva a quella presa in considerazione non è buca, la somma delle ore successive deve essere minore di M costante molto elevata.
+\\\\\textbf{Ore libere dei professori}
+\begin{minted}[bgcolor=lightGray]{AMPL}
+minimize ore_libere{p in PROFESSORI} :
+	sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :
+		(m,p) in CATTEDRE &&
+		(p,g,h) in ORE_LIBERE} x[c,m,p,g,h];
+\end{minted}
+Questo obiettivo stabilisce che il sistema deve cercare di non assegnare lezioni ad un professore nelle ore per le quali ha fatto richiesta di non lavorare. Di conseguenza, per ogni professore, il numero delle ore di lezione nelle ore libere dovrà essere minimizzato.
 
 \end{document}

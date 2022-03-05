@@ -13,6 +13,9 @@ set GIORNI := LUN, MAR, MER, GIO VEN SAB;
 
 set GIORNI_LIBERI :=
 (FAROLINI, GIO)
+('BOTTI', 'LUN')
+('BOTTI', 'MAR')
+('BOTTI', 'SAB')
 ;
 
 set ORE_LIBERE :=

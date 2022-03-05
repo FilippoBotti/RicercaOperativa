@@ -101,12 +101,6 @@ class Problem:
         sum{(g,h) in LEZIONI, p in PROFESSORI : (m,p) in CATTEDRE }\
         x[c,m,p,g,h] = ore_per_materia[m];')
 
-        #ORE LIBERE PROFESSORI
-        self.ampl.eval('subject to ore_libere{p in PROFESSORI} :\
-        sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :\
-            (m,p) in CATTEDRE &&\
-            (p,g,h) in ORE_LIBERE} x[c,m,p,g,h] = 0;')
-
         #ORE NON CONSECUTIVE
         self.ampl.eval('subject to ore_non_consecutive{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, \
             h in ORE: h+1 in ORE &&  (m,p) in CATTEDRE} :\
@@ -120,7 +114,7 @@ class Problem:
 
         #GIORNI LAVORATIVI VINCOLO
         self.ampl.eval('subject to giorni_lavorativi{p in PROFESSORI}:\
-        sum{g in GIORNI} gl[p,g] <=3;')
+        sum{g in GIORNI} gl[p,g] <=5;')
 
         #MINIMIZZO GIORNI LAVORATIVI
         self.ampl.eval('minimize obj_giorni_lavorativi{p in PROFESSORI}:\
@@ -131,17 +125,11 @@ class Problem:
         sum{g in GIORNI:\
             (p,g) in GIORNI_LIBERI} gl[p,g];')
 
-        #ORE ATTACCATE
-        # self.ampl.eval('maximize ore_di_fila{p in PROFESSORI, g in GIORNI}:\
-	    # sum{c in CLASSI,h in ORE, m in MATERIE: (g,h) in LEZIONI && (m,p) in CATTEDRE && h+1 in ORE}\
-	    # (x[c,m,p,g,h]+x[c,m,p,g,h+1] - sum{hi in ORE: hi >h+1}x[c,m,p,g,hi]*x[c,m,p,g,h]*(1-x[c,m,p,g,h+1])*M);')
-
-        # se prof ha lezione in due ore non consecutive (in qualsiasi classe) allora voglio minimizzare la distanza
-        # tra queste due ore. Caso migliore: le ore diventano consecutive
-        # self.ampl.eval('subject to ore_di_fila{p in PROFESSORI, g in GIORNI, c in CLASSI, m in MATERIE, h in ORE, j in ORE:\
-        #              (m,p) in CATTEDRE && (g,h) in LEZIONI && j>h && (g,j) in LEZIONI}:\
-        #                   (j-h)*x[c,m,p,g,h]*x[c,m,p,g,j]<=1;\
-        #     ')
+        #ORE LIBERE PROFESSORI
+        self.ampl.eval('minimize ore_libere{p in PROFESSORI} :\
+        sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :\
+            (m,p) in CATTEDRE &&\
+            (p,g,h) in ORE_LIBERE} x[c,m,p,g,h];')
 
         self.ampl.eval('subject to ore{g in GIORNI, p in PROFESSORI,h in ORE: (g,h) in LEZIONI && h+1 in ORE}:\
                         sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI && j>h && (m,p) in CATTEDRE}\

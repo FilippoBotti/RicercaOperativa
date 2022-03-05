@@ -23,9 +23,10 @@ def solve():
 
         giorni = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB']
 
-        giorni_liberi = [('FAROLINI', 'GIO')]
+        giorni_liberi = [('FAROLINI', 'LUN'), ('BOTTI', 'LUN'), ('BOTTI', 'MAR'), ('BOTTI', 'SAB'),
+                    ('FAROLINI', 'MAR'), ('BALL', 'LUN'), ('BALL', 'MAR'), ('BALL', 'SAB')]
 
-        ore_libere = [('FAROLINI', 'GIO', 1)]
+        ore_libere = [('FAROLINI', 'GIO', 1), ('BOTTI', 'SAB',2)]
         lezioni = [('LUN', 1),
             ('LUN', 2),
             ('LUN', 3),
@@ -101,10 +102,12 @@ def solve():
                 if value >0:
                     lezioni.append((key[0],key[1],key[2],key[3],key[4]))
                     
+        for key,val in problem.ampl.get_objective("lezioni_in_giorni_liberi"):
+            print(key,val)
         lezioni.sort(key=lambda tup: tup[4]) 
-        for lezione in lezioni:
-            if lezione[2] =="BOTTI":
-                print(lezione)
+        # for lezione in lezioni:
+        #     if lezione[2] =="BOTTI":
+        #         print(lezione)
         if request.form['title'] not in problem.professori:
             return render_template('base.html', giorni=problem.giorni, lezioni=lezioni,  classi = problem.classi)
         return render_template('professore.html', giorni=problem.giorni, lezioni=lezioni, professore = request.form['title'])

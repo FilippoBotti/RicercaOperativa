@@ -50,16 +50,6 @@ subject to ore_massime_materia{c in CLASSI, g in GIORNI, m in MATERIE} :
 subject to ore_materia{c in CLASSI, m in MATERIE} :
 	sum{(g,h) in LEZIONI, p in PROFESSORI : (m,p) in CATTEDRE }
 	 x[c,m,p,g,h] = ore_per_materia[m];
-		
-#ORE LIBERE DEI PROF	
-subject to ore_libere{p in PROFESSORI} :
-	sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :
-		(m,p) in CATTEDRE &&
-		(p,g,h) in ORE_LIBERE} x[c,m,p,g,h] = 0;	
-	
-#maximize ore_buche{p in PROFESSORI, g in GIORNI, h in ORE: (g,h+2) in LEZIONI}:
-#	sum{c in CLASSI, m in MATERIE: (m,p) in CATTEDRE } 
-#	(x[c,m,p,g,h]+x[c,m,p,g,h+1] - x[c,m,p,g,h+2]);
 	
 #PROFESSORE NON AVRA' LEZIONI NON CONSECUTIVE IN OGNI CLASSE
 subject to ore_non_consecutive{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
@@ -73,6 +63,12 @@ subject to singolo_prof_per_materia{c in CLASSI, g in GIORNI, m in MATERIE, p in
 
 subject to giorni_lavorativi{p in PROFESSORI}:
 	sum{g in GIORNI} gl[p,g] <=5;
+	
+#ORE LIBERE DEI PROF	
+minimize ore_libere{p in PROFESSORI} :
+	sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :
+		(m,p) in CATTEDRE &&
+		(p,g,h) in ORE_LIBERE} x[c,m,p,g,h];	
 	
 minimize obj_giorni_lavorativi{p in PROFESSORI}:
 	sum{g in GIORNI} gl[p,g];
