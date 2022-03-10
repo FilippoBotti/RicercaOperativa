@@ -54,7 +54,8 @@ subject to ore_materia{c in CLASSI, m in MATERIE} :
 #PROFESSORE NON AVRA' LEZIONI NON CONSECUTIVE IN OGNI CLASSE
 subject to ore_non_consecutive{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
 		h in ORE: h+1 in ORE &&  (m,p) in CATTEDRE} :
-		sum{j in h+1..5, mat in MATERIE : (mat,p) in CATTEDRE} x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
+		sum{j in h+1..5, mat in MATERIE : (mat,p) in CATTEDRE} 
+		x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M;
 	
 subject to singolo_prof_per_materia{c in CLASSI, g in GIORNI, m in MATERIE, p in PROFESSORI, 
 		h in ORE: (m,p) in CATTEDRE}:

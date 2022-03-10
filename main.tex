@@ -83,6 +83,57 @@ Possiamo ora modellare il problema andando a definire i vincoli che esso deve ri
 	\\\\\emph{$\forall$ p in Prof, $\forall$ g in Giorni, $\forall$ h in Ore $\mid$ (g,h)  $\in$ Lezioni}: 
 	\\$\sum_{c \in Classi}$ $\sum_{m : (m,p) \in Cat}x[c,m,p,g,h] <= 1$
 \\\\Per ogni professore, per ogni giorno e per ogni ora la somma di tutte le ore di lezione deve essere minore o uguale ad 1, ovvero non posso avere due lezioni alla stessa ora dello stesso giorno tenute dallo stesso professore.
+\\\\\textbf{Ore massime per professore in una classe}
+	\\\\\emph{$\forall$ p in Prof, $\forall$ g in Giorni, $\forall$ c in Classi}:
+	\\$\sum_{m : (m,p) \in Cat}$ $\sum_{h : (g,h) \in Lezioni}x[c,m,p,g,h] <= 3$
+\\\\Per ogni professore, per ogni giorno e per ogni classe la somma delle ore di lezioni tenute dal professore nella classe selezionata deve essere minore o uguale a tre, ovvero ogni classe non può avere per più di tre ore lo stesso professore durante la stessa giornata.
+\\\\\textbf{Ore massime per materia in una classe}
+	\\\\\emph{$\forall$ m in Materie, $\forall$ g in Giorni, $\forall$ c in Classi}:
+	\\$\sum_{p : (m,p) \in Cat}$ $\sum_{h : (g,h) \in Lezioni}x[c,m,p,g,h] <= 2$
+\\\\Per ogni materia, per ogni giorno e per ogni classe la somma delle ore di lezione della materia nella classe selezionata deve essere minore o uguale a due, ovvero ogni classe non può avere più di dure ore della stessa materia durante la stessa giornata.
+\\\\\textbf{Ore materia a settimana}
+	\\\\\emph{$\forall$ m in Materie, $\forall$ c in Classi}:
+	\\$\sum_{p : (m,p) \in Cat}$ $\sum_{(g,h) \in Lezioni}x[c,m,p,g,h] = ore$\_$materia[m]$
+\\\\Per ogni classe e per ogni materia la somma delle ore totali a settimana della materia deve essere uguale al valore stabilito per la materia.
+\\\\\textbf{Definizione giorni lavorativi}
+	\\\\\emph{$\forall$ p in Prof, $\forall$ g in Giorni}:
+	\\$\sum_{p : (m,p) \in Cat}$ $\sum_{m : (m,p) \in Cat}$ $\sum_{h : (g,h) \in Lezioni}x[c,m,p,g,h] >= gl[p,g]$
+		\\\\\emph{$\forall$ (m,p) in Cat, $\forall$ (g,h) in Lezioni, $\forall$ c in Classi}:
+	\\$gl[p,g] >= x[c,m,p,g,h]$
+\\\\Stiamo definendo le variabili relative ai giorni lavorativi. La prima espressione stabilisce che $gl[p,h]$ deve essere minore o uguale alla somma delle lezioni tenute dal professore nel giorno selezionato, quindi se il professore non lavora nel giorno scelto $gl[p,g]$ dovrà essere uguale (essendo binaria) a zero.
+\\La seconda espressione stabilisce invece che $gl[p,g]$ debba essere maggiore o uguale a ogni variabile $x[c,m,p,g,h]$, in particolare se un professore avrà almeno una lezione nel giorno selezionato $gl[p,g]$ dovrà essere uguale (sempre perché binaria) ad uno.
+\\\\\textbf{Giorni lavorativi}
+	\\\\\emph{$\forall$ p in Prof}:
+	\\$\sum_{g in Giorni}gl[p,g] <= 5$
+\\\\Data una settimana lavorativa di sei giorni, vogliamo che i professori abbiano almeno un giorno libero, di conseguenza la somma dei giorni lavorativi per ogni professore deve essere minore o uguale a cinque.
+\\\\\textbf{Singolo professore per materia}
+	\\\\\emph{$\forall$ (m,p) in Cat, $\forall$ (g,h) in Lezioni, $\forall$ c in Classi}:
+	\\$\sum_{pr \neq p : (m,pr) \in Cat}$ $\sum_{(gi,hi) \in Lezioni}x[c,m,pr,gi,hi] <= (1-x[c,m,p,g,h])*M$
+\\\\Per ogni classe, materia, professore, giorno e ora la somma delle ore di lezione di un professore, diverso da quello iniziale, per la stessa materia deve essere minore o uguale a zero, se il professore iniziale insegna la materia nella classe selezionata, mentre deve essere inferiore a $Big M$ negli altri casi.
+\\\\\textbf{Ore non consecutive dei professori}
+	\\\\\emph{$\forall$ (m,p) in Cat, $\forall$ g in Giorni, $\forall$ c in Classi, $\forall$ h in Ore $\mid$ (h+1) in Ore, (g,h) in Lezioni}:
+	\\$\sum_{j>=h+1: j \in Lezioni}$ $\sum_{(mat,p) \in Cat}x[c,mat,p,g,j] <= (1-x[c,m,p,g,h])*M + x[c,m,p,g,h+1]*M$
+\\\\Per ogni classe, materia, professore, giorno e ora la somma delle ore successive a quella selezionata deve essere minore o uguale a zero se il professore insegna nella classe all'ora selezionata e non in quella successiva, deve essere inferiore a $Big M$ negli altri casi. Sostanzialmente questo vincolo indica che se un professore non può avere lezioni separate durante la stessa giornata nella stessa classe.
+
+\subsection{Obiettivi}
+Andiamo ora a definire gli obiettivi del problema.
+\\\\\textbf{Minimizzare i giorni lavorativi}
+	\\\\\emph{$\forall$ p in Prof}:
+	\\$\sum_{g \in Giorni}gl[p,g]$
+\\\\L'idea è quella di minimizzare i giorni lavorativi dei professori, questo per compattare le lezioni dei professori con meno ore.
+\\\\\textbf{Minimizzare le ore di lavoro nelle ore libere richieste}
+	\\\\\emph{$\forall$ p in Prof}:
+	\\$\sum_{c \in Classi}$ $\sum_{(g,h) \in Lezioni : (p,g,h) \in Ore\_Libere}$ $\sum_{m : (m,p) \in Cat}gl[p,g]$
+\\\\Si vuole minimizzare le ore di lavoro dei professori nelle ore per le quali i professori hanno fatto richiesta di indisponibilità.
+\\\\\textbf{Minimizzare i giorni di lavoro nei giorni liberi richiesti}
+	\\\\\emph{$\forall$ p in Prof}:
+	\\$\sum_{g \in Giorni : (p,g) \in Giorni\_Liberi}gl[p,g]$
+\\\\Stesso ragionamento dell'obiettivo precedente, ma riferito ai giorni per i quali i professori hanno fatto richiesta di indisponibilità.
+\\\\\textbf{Minimizzare le ore buche}
+	\\\\\emph{$\forall$ p in Prof, $\forall$ g in Giorni, $\forall$ h in Ore $\mid$ (h+1) in Ore}:
+	\\$\sum_{m : (m,p) \in Cat}$ $\sum_{c \in Classi}$ $sum_{j>h : (g,j) \in Lezioni}(x[c,m,p,g,j]-x[c,m,p,g,h+1]*M$
+\\\\L'obiettivo in questione vuole minimizzare le ore buche tra una lezione ed un'altra per ogni professore durante lo stesso giorno. Per ogni professore, per ogni giorno e per ogni ora la somma delle ore di lezione successive a quella selezionata meno $Big M$ se il professore ha lezione nell'ora immediatamente successiva a quella selezionata deve essere minimizzata. Idealmente la somma sopra descritta deve essere pari a zero, ovvero un professore non deve avere ore buche tra una lezione ed un'altra.
+
 \section{Modello AMPL}
 In questa sezione andremo a trattare la conversione in linguaggio AMPL del modello matematico appena formulato, dapprima da un punto di vista strutturale, quindi definendo solo il problema e, successivamente, da un punto di vista implementativo, definiendo dunque alcune istanze del problema e commentando i loro risultati.
 \subsection{Insiemi}
