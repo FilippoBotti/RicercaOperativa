@@ -61,7 +61,7 @@ class Problem:
                 set ORE_LIBERE within PROFESSORI cross LEZIONI;')
 
         #PARAMETRI
-        self.ampl.eval('param ore_per_materia{MATERIE} >= 0, integer; param M := 100;')
+        self.ampl.eval('param ore_per_materia{MATERIE} >= 0, integer; param M := 10000; param ore_al_giorno integer, default 5;')
 
         #VARIABILI
         self.ampl.eval('var x{c in CLASSI, (m,p) in CATTEDRE, (g,h) in LEZIONI} binary; \
@@ -77,7 +77,7 @@ class Problem:
 
         #ORE GIORNALIERE
         self.ampl.eval('subject to ore_giornaliere{c in CLASSI, g in GIORNI} : \
-        sum{(m,p) in CATTEDRE, h in ORE: (g,h) in LEZIONI} x[c,m,p,g,h] =5;')
+        sum{(m,p) in CATTEDRE, h in ORE: (g,h) in LEZIONI} x[c,m,p,g,h] = ore_al_giorno;')
 
         #ORE CONTEMPORANEA CLASSI
         self.ampl.eval('subject to ore_in_contemporanea_classe{c in CLASSI, (g,h) in LEZIONI} :\
@@ -126,14 +126,16 @@ class Problem:
             (p,g) in GIORNI_LIBERI} gl[p,g];')
 
         #ORE LIBERE PROFESSORI
-        self.ampl.eval('minimize ore_libere{p in PROFESSORI} :\
+        self.ampl.eval('minimize lezioni_in_ore_libere{p in PROFESSORI} :\
         sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :\
             (m,p) in CATTEDRE &&\
             (p,g,h) in ORE_LIBERE} x[c,m,p,g,h];')
 
-        self.ampl.eval('subject to ore{g in GIORNI, p in PROFESSORI,h in ORE: (g,h) in LEZIONI && h+1 in ORE}:\
-                        sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI && j>h && (m,p) in CATTEDRE}\
-                            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M) <= 0;')
+        self.ampl.eval('minimize ore_buche{g in GIORNI, p in PROFESSORI,h in ORE:\
+            (g,h) in LEZIONI && h+1 in ORE}:\
+            sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI\
+            && j>h && (m,p) in CATTEDRE}\
+            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M);')
 
 
     def solve_problem(self):

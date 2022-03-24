@@ -66,7 +66,7 @@ subject to giorni_lavorativi{p in PROFESSORI}:
 	sum{g in GIORNI} gl[p,g] <=5;
 	
 #ORE LIBERE DEI PROF	
-minimize ore_libere{p in PROFESSORI} :
+minimize lezioni_in_ore_libere{p in PROFESSORI} :
 	sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :
 		(m,p) in CATTEDRE &&
 		(p,g,h) in ORE_LIBERE} x[c,m,p,g,h];	
@@ -78,7 +78,7 @@ minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
 	sum{g in GIORNI:
 		(p,g) in GIORNI_LIBERI} gl[p,g];
 		
-minimize ore_di_fila{g in GIORNI, p in PROFESSORI,h in ORE: (g,h) in LEZIONI && h+1 in ORE}:
+minimize ore_buche{g in GIORNI, p in PROFESSORI,h in ORE: (g,h) in LEZIONI && h+1 in ORE}:
                         sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI && j>h && (m,p) in CATTEDRE}
                             (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M);
 		
