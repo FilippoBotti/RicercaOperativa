@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <style>
+        table {
+          font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+        }
+        
+        td, th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+        }
+        
+        tr:nth-child(even) {
+          background-color: #dddddd;
+        }
+        </style>
+
+    <title>prova</title>
+  </head>
+  <body>
+    <h1>
+        {% block content %}
+    <h1>{% block title %} AMPL {% endblock %}</h1>
+        
+            <h2>{{ ORARIO }}</h2>
+            <table>
+                  <tr>
+                    <td>
+                        <h2>
+                            {{classe}}
+                        </h2>
+                    
+                    </td> {% for giorno in giorni %}
+                    
+                    <tr>
+                        <td><h3>{{giorno}}</h3></td>
+                        {% for lezione in lezioni %}
+                        {% if lezione[3] == giorno %}
+                        {% if lezione[2] == professore %}
+                        <td>{{lezione[1], lezione[2],lezione[0], lezione[4]}}</td>
+                       {% endif %}
+                       {% endif %}
+                        {% endfor %}
+                      </tr>
+                    {% endfor %}
+                  </tr>
+                  
+              </table>
+        <hr>
+{% endblock %}
+    </h1>
+
+  <form action="/">
+    <input type="submit" value="BACK" >
+  </form>
+
+   </body>
+</html>
