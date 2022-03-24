@@ -9,7 +9,7 @@ set CATTEDRE within MATERIE cross PROFESSORI;
 set ORE_LIBERE within PROFESSORI cross LEZIONI;
 
 param ore_per_materia{MATERIE} >= 0, integer;
-param M := 100;
+param M := 10000;
 param ore_al_giorno integer, default 5;
 
 var x{c in CLASSI, (m,p) in CATTEDRE, (g,h) in LEZIONI} binary;
