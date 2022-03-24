@@ -80,7 +80,7 @@ minimize lezioni_in_giorni_liberi{p in PROFESSORI}:
 		
 minimize ore_buche{g in GIORNI, p in PROFESSORI,h in ORE: (g,h) in LEZIONI && h+1 in ORE}:
                         sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI && j>h && (m,p) in CATTEDRE}
-                            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M);
+                            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M- (1-x[c,m,p,g,h]) * M );
 		
 		
 		

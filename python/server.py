@@ -102,8 +102,7 @@ def solve():
                 if value >0:
                     lezioni.append((key[0],key[1],key[2],key[3],key[4]))
                     
-        for key,val in problem.ampl.get_objective("lezioni_in_giorni_liberi"):
-            print(key,val)
+    
         lezioni.sort(key=lambda tup: tup[4]) 
         # for lezione in lezioni:
         #     if lezione[2] =="BOTTI":

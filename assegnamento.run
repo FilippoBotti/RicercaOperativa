@@ -11,4 +11,4 @@ for{(g,h) in LEZIONI, (m,p) in CATTEDRE,  c in CLASSI}{
 	}
 
 display lezioni_in_giorni_liberi['BOTTI'];
-display ore_libere['BOTTI'];
+display lezioni_in_ore_libere['BOTTI'];
