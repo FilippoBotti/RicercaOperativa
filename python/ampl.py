@@ -116,26 +116,39 @@ class Problem:
         self.ampl.eval('subject to giorni_lavorativi{p in PROFESSORI}:\
         sum{g in GIORNI} gl[p,g] <=5;')
 
-        #MINIMIZZO GIORNI LAVORATIVI
-        self.ampl.eval('minimize obj_giorni_lavorativi{p in PROFESSORI}:\
-        sum{g in GIORNI} gl[p,g];')
+        # #MINIMIZZO GIORNI LAVORATIVI
+        # self.ampl.eval('minimize obj_giorni_lavorativi{p in PROFESSORI}:\
+        # sum{g in GIORNI} gl[p,g];')
 
-        #MINIMIZZO LEZIONI IN GIORNI LAVORATIVI
-        self.ampl.eval('minimize lezioni_in_giorni_liberi{p in PROFESSORI}:\
-        sum{g in GIORNI:\
-            (p,g) in GIORNI_LIBERI} gl[p,g];')
+        # #MINIMIZZO LEZIONI IN GIORNI LAVORATIVI
+        # self.ampl.eval('minimize lezioni_in_giorni_liberi{p in PROFESSORI}:\
+        # sum{g in GIORNI:\
+        #     (p,g) in GIORNI_LIBERI} gl[p,g];')
 
-        #ORE LIBERE PROFESSORI
-        self.ampl.eval('minimize lezioni_in_ore_libere{p in PROFESSORI} :\
-        sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :\
-            (m,p) in CATTEDRE &&\
-            (p,g,h) in ORE_LIBERE} x[c,m,p,g,h];')
+        # #ORE LIBERE PROFESSORI
+        # self.ampl.eval('minimize lezioni_in_ore_libere{p in PROFESSORI} :\
+        # sum{(g,h) in LEZIONI,c in CLASSI, m in MATERIE :\
+        #     (m,p) in CATTEDRE &&\
+        #     (p,g,h) in ORE_LIBERE} x[c,m,p,g,h];')
+
+        # self.ampl.eval('minimize ore_buche{g in GIORNI, p in PROFESSORI,h in ORE:\
+        #     (g,h) in LEZIONI && h+1 in ORE}:\
+        #     sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI\
+        #     && j>h && (m,p) in CATTEDRE}\
+        #     (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M (1-x[c,m,p,g,h]) * M);')
+
 
         self.ampl.eval('minimize ore_buche{g in GIORNI, p in PROFESSORI,h in ORE:\
             (g,h) in LEZIONI && h+1 in ORE}:\
             sum{m in MATERIE,c in CLASSI,j in ORE: (g,j) in LEZIONI\
             && j>h && (m,p) in CATTEDRE}\
-            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M);')
+            (x[c,m,p,g,j] - x[c,m,p,g,h+1] * M - (1-x[c,m,p,g,h]) * M)+\
+                sum{(g1,h1) in LEZIONI,c1 in CLASSI, m1 in MATERIE :\
+            (m1,p) in CATTEDRE &&\
+            (p,g1,h1) in ORE_LIBERE} x[c1,m1,p,g1,h1] +\
+                sum{g2 in GIORNI:\
+            (p,g2) in GIORNI_LIBERI} gl[p,g2]+\
+                 sum{g3 in GIORNI} gl[p,g3] ;')
 
 
     def solve_problem(self):
